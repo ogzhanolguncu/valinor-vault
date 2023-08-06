@@ -1,15 +1,21 @@
 export const deserialize = (input: string) => {
-  let parsed = null;
-  let inputSplitted = input.split("\r\n");
+  if (input === "$-1\r\n") return null;
 
-  for (let i = 0; i < inputSplitted.length; i++) {
-    const cmd = inputSplitted[i];
-    if (cmd.includes("*")) {
-      parsed = [];
-    }
-    if (cmd.includes("$")) {
-      parsed.push(inputSplitted[i + 1]);
-    }
+  if (input.startsWith("$")) {
+    const [length, ...rest] = input.slice(1).split("\r\n");
+    return rest[0];
   }
-  return parsed.join(" ");
+
+  if (input.startsWith("*")) {
+    const parts = input
+      .slice(1)
+      .split("\r\n")
+      .filter((p) => p !== "");
+    const itemCount = parseInt(parts[0], 10);
+    let items: any[] = [];
+    for (let i = 1; i <= itemCount * 2; i += 2) {
+      items.push(deserialize(`$${parts[i]}\r\n${parts[i + 1]}\r\n`));
+    }
+    return items;
+  }
 };
