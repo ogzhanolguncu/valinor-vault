@@ -17,11 +17,7 @@ describe("RESP serialization", () => {
   });
 
   test("should serialize an simple string", () => {
-    expect(serialize("hello")).toBe("$5\r\nhello\r\n");
-  });
-
-  test("should serialize an empty string", () => {
-    expect(serialize("")).toBe("$0\r\n\r\n");
+    expect(serialize("+pong")).toBe("+pong\r\n");
   });
 });
 

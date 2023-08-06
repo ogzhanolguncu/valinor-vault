@@ -1,8 +1,11 @@
 export const serialize = (input: any): string => {
   if (input === null) return "$-1\r\n";
 
-  if (typeof input === "string") {
-    return `$${input.length}\r\n${input}\r\n`;
+  if (typeof input === "string" && input.startsWith("+")) {
+    return `${input}\r\n`;
+  }
+  if (typeof input === "string" && input.startsWith("-")) {
+    return `${input}\r\n`;
   }
 
   if (typeof input === "string") {
