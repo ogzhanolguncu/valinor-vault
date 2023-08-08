@@ -1,35 +1,50 @@
-import { chunk } from "./serializer-utils";
+const splitData = (data: string): [string, string] => {
+  const [head, ...tail] = data.split("\r\n");
+  return [head, tail.join("\r\n")];
+};
 
-export const deserialize = (input: string) => {
-  if (input === "$-1\r\n") return null;
+const readSimpleString = (data: string): [string, string] => {
+  const [head, tail] = splitData(data);
+  return [head, tail];
+};
 
-  const dataType = input[0];
-  const dataTypeRemovedPart = input.slice(1);
-  const [header, ...rest] = dataTypeRemovedPart.split("\r\n");
+const readBulkString = (data: string): [string, string] => {
+  const [lengthStr, tail] = splitData(data);
+  const length = parseInt(lengthStr);
+  const value = tail.substring(0, length);
+  const remainingTail = tail.substring(length + 2); // +2 for skipping '\r\n'
+  return [value, remainingTail];
+};
 
-  switch (dataType) {
+const readArray = (data: string): [string | string[], string] => {
+  const [arrLength, tail] = splitData(data);
+  const count = parseInt(arrLength);
+
+  let remainingData = tail;
+  const items: string[] = Array.from({ length: count }).map(() => {
+    const [parsedItem, newTail] = parseRESP(remainingData);
+    remainingData = newTail;
+    return parsedItem;
+  });
+
+  return [items, remainingData];
+};
+
+function parseRESP(data: string) {
+  if (data === "$-1\r\n") return [null, undefined];
+  const type = data[0];
+
+  switch (type) {
     case "+":
     case "-":
-      return header;
-    case ":":
-      return parseInt(header);
+      return readSimpleString(data.slice(1));
     case "$":
-      if (parseInt(header) !== rest[0].length) {
-        throw new Error("Invalid bulk string length");
-      }
-      return rest[0];
+      return readBulkString(data.slice(1));
     case "*":
-      //Remove empty string at the end of rest
-      rest.pop();
-      const redisArr = [];
-      for (const pairs of chunk(rest, 2)) {
-        redisArr.push(deserialize(`${pairs.join("\r\n")}\r\n`));
-      }
-      if (parseInt(header) !== redisArr.length) {
-        throw new Error("Invalid array length");
-      }
-      return redisArr;
+      return readArray(data.slice(1));
     default:
-      throw new Error("Unsupported data type");
+      throw new Error(`Unsupported data type: ${type}`);
   }
-};
+}
+
+export const deserialize = (input: string) => parseRESP(input)[0];
