@@ -1,6 +1,6 @@
 import net from "net";
-import { deserialize } from "./resp/deserialize";
-import { serialize } from "./resp/serialize";
+import { deserialize } from "./resp-v2/deserialize";
+import { serialize } from "./resp-v2/serialize";
 
 const server = net.createServer((socket) => {
   console.log("Client connected");

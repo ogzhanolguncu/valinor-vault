@@ -9,3 +9,5 @@ export function chunk<T>(array: T[], size: number): T[][] {
   }
   return result;
 }
+
+export const appendCRLF = (str: string) => `${str}\r\n`;
