@@ -1,4 +1,4 @@
-import { chunk } from "./utils";
+import { chunk } from "./serializer-utils";
 
 export const deserialize = (input: string) => {
   if (input === "$-1\r\n") return null;

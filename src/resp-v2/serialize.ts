@@ -1,4 +1,4 @@
-import { appendCRLF } from "./utils";
+import { appendCRLF } from "./serializer-utils";
 
 export const serialize = (input: any) => {
   if (input === null) return appendCRLF("$-1");

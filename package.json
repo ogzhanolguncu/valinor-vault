@@ -2,9 +2,9 @@
   "name": "ts-redis-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.ts",
+  "main": "server.ts",
   "scripts": {
-    "dev": "tsx watch src",
+    "dev": "tsx watch src/server.ts",
     "test": "jest --watchAll"
   },
   "keywords": [],
