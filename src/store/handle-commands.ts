@@ -4,9 +4,7 @@ import { valinorVault, valinorVaultTimeouts } from "./valinor-vault";
 
 export function handleCommand(command: string | number | any[]) {
   if (!Array.isArray(command)) {
-    return serialize(
-      "-ERR unknown command or wrong number of arguments\r\n"
-    );
+    return serialize("-ERR unknown command or wrong number of arguments\r\n");
   }
 
   const [cmd, ...args] = command;
@@ -40,13 +38,7 @@ export function handleCommand(command: string | number | any[]) {
   }
 }
 
-// EX seconds -- Set the specified expire time, in seconds.
-// PX milliseconds -- Set the specified expire time, in milliseconds.
-// EXAT timestamp-seconds -- Set the specified Unix time at which the key will expire, in seconds.
-// PXAT timestamp-milliseconds -- Set the specified Unix time at which the key will expire, in milliseconds.
-
-type Payload =
-  | [string, string, "EX" | "PX" | "EAXT" | "PXAT", string];
+type Payload = [string, string, "EX" | "PX" | "EXAT" | "PXAT", string];
 const decideSetStrategy = (args: Payload) => {
   const [key, value, expiryVariant, ttl] = args;
   if (expiryVariant && ttl) {
@@ -56,16 +48,25 @@ const decideSetStrategy = (args: Payload) => {
         return setToStore(key, value, numberTTL * 1000);
       case "PX":
         return setToStore(key, value, numberTTL);
+      case "EXAT": {
+        const secondToMillis = numberTTL * 1000;
+        //If its in the past
+        if (secondToMillis < Date.now()) return "-ERR EXAT is in the past\r\n";
+        const timeToWait = secondToMillis - Date.now();
+        return setToStore(key, value, timeToWait);
+      }
+      case "PXAT": {
+        //If its in the past
+        if (numberTTL < Date.now()) return "-ERR EXAT is in the past\r\n";
+        const timeToWait = numberTTL - Date.now();
+        return setToStore(key, value, timeToWait);
+      }
     }
   }
   return setToStore(key, value);
 };
 
-const setToStore = (
-  key: string,
-  value: string,
-  expirationMillis?: number
-) => {
+const setToStore = (key: string, value: string, expirationMillis?: number) => {
   if (!expirationMillis) {
     valinorVault.set(key, value);
     return "+OK" as const;
@@ -79,10 +80,7 @@ const setToStore = (
     const currentTime = Date.now();
     const gracePeriod = 5;
 
-    if (
-      storedExpiration &&
-      Math.abs(storedExpiration - currentTime) <= gracePeriod
-    ) {
+    if (storedExpiration && Math.abs(storedExpiration - currentTime) <= gracePeriod) {
       valinorVault.delete(key);
       valinorVaultTimeouts.delete(key);
     }
