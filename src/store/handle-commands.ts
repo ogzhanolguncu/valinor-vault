@@ -38,53 +38,60 @@ export function handleCommand(command: string | number | any[]) {
   }
 }
 
-type Payload = [string, string, "EX" | "PX" | "EXAT" | "PXAT", string];
+type Payload = [string, string, string?, number?];
+
 const decideSetStrategy = (args: Payload) => {
   const [key, value, expiryVariant, ttl] = args;
+
   if (expiryVariant && ttl) {
-    const numberTTL = parseInt(ttl);
+    const numberTTL = parseInt(ttl.toString());
+
+    if (isTimeInThePast(numberTTL, expiryVariant)) {
+      return `-ERR ${expiryVariant} is in the past\r\n`;
+    }
+
     switch (expiryVariant) {
       case "EX":
         return setToStore(key, value, numberTTL * 1000);
       case "PX":
         return setToStore(key, value, numberTTL);
-      case "EXAT": {
-        const secondToMillis = numberTTL * 1000;
-        //If its in the past
-        if (secondToMillis < Date.now()) return "-ERR EXAT is in the past\r\n";
-        const timeToWait = secondToMillis - Date.now();
-        return setToStore(key, value, timeToWait);
-      }
-      case "PXAT": {
-        //If its in the past
-        if (numberTTL < Date.now()) return "-ERR EXAT is in the past\r\n";
-        const timeToWait = numberTTL - Date.now();
-        return setToStore(key, value, timeToWait);
-      }
+      case "EXAT":
+        return setToStore(key, value, numberTTL * 1000 - Date.now());
+      case "PXAT":
+        return setToStore(key, value, numberTTL - Date.now());
     }
   }
   return setToStore(key, value);
 };
 
-const setToStore = (key: string, value: string, expirationMillis?: number) => {
-  if (!expirationMillis) {
-    valinorVault.set(key, value);
-    return "+OK" as const;
+const isTimeInThePast = (time: number, variant: string): boolean => {
+  if (variant === "EXAT") {
+    return time * 1000 < Date.now();
   }
+  if (variant === "PXAT") {
+    return time < Date.now();
+  }
+  return false;
+};
+
+const setToStore = (key: string, value: string, expirationMillis?: number) => {
   valinorVault.set(key, value);
-  const expirationTime = Date.now() + expirationMillis;
-  valinorVaultTimeouts.set(key, expirationTime);
 
-  setTimeout(() => {
-    const storedExpiration = valinorVaultTimeouts.get(key);
-    const currentTime = Date.now();
-    const gracePeriod = 5;
+  if (expirationMillis) {
+    const expirationTime = Date.now() + expirationMillis;
+    valinorVaultTimeouts.set(key, expirationTime);
 
-    if (storedExpiration && Math.abs(storedExpiration - currentTime) <= gracePeriod) {
-      valinorVault.delete(key);
-      valinorVaultTimeouts.delete(key);
-    }
-  }, expirationMillis);
+    setTimeout(() => {
+      const storedExpiration = valinorVaultTimeouts.get(key);
+      const currentTime = Date.now();
+      const gracePeriod = 5;
+
+      if (storedExpiration && Math.abs(storedExpiration - currentTime) <= gracePeriod) {
+        valinorVault.delete(key);
+        valinorVaultTimeouts.delete(key);
+      }
+    }, expirationMillis);
+  }
 
   return "+OK" as const;
 };
