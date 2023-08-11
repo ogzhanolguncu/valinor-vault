@@ -1,8 +1,9 @@
 import { serialize } from "../resp-v2/serialize";
-import { decideExistsStrategy } from "./exists";
+import { deleteKeyValPair } from "./del";
+import { checkIfKeyValExists } from "./exists";
 import { Payload, decideSetStrategy } from "./set";
 import { throwIfNumOfArgsWrong } from "./utils";
-import { valinorVault, valinorVaultTimeouts } from "./valinor-vault";
+import { valinorVault } from "./valinor-vault";
 
 export function handleCommand(command: string | number | any[]) {
   if (!Array.isArray(command)) {
@@ -23,7 +24,10 @@ export function handleCommand(command: string | number | any[]) {
       return serialize(decideSetStrategy(args as Payload));
     }
     case "exists": {
-      return serialize(decideExistsStrategy(args));
+      return serialize(checkIfKeyValExists(args));
+    }
+    case "del": {
+      return serialize(deleteKeyValPair(args));
     }
     case "get": {
       if (args.length !== 1) {
