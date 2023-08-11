@@ -1,4 +1,5 @@
 import { serialize } from "../resp-v2/serialize";
+import { decrementIfExists } from "./decr";
 import { deleteKeyValPair } from "./del";
 import { checkIfKeyValExists } from "./exists";
 import { incrementIfExists } from "./incr";
@@ -32,6 +33,9 @@ export function handleCommand(command: string | number | any[]) {
     }
     case "incr": {
       return serialize(incrementIfExists(args[0]));
+    }
+    case "decr": {
+      return serialize(decrementIfExists(args[0]));
     }
     case "get": {
       if (args.length !== 1) {
