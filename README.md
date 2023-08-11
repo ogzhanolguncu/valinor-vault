@@ -33,4 +33,4 @@ We've adopted the official RESP to ensure seamless communication in our system.
 ### Little Sketch
 
 We've included a diagram below to offer a clearer perspective on this implementation. This visualization should help elucidate the inner workings and flow of our Redis server replica.
-![Redis Flow](https://excalidraw.com/#json=eU_1quFX0xhHrAUxs2v2q,nYr_q3PuXKbZz_sEo6F30w)
+![Redis Flow](https://github.com/ogzhanolguncu/valinor-vault/tree/master/assets/redis-flow.png?raw=true)
