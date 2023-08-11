@@ -33,4 +33,5 @@ We've adopted the official RESP to ensure seamless communication in our system.
 ### Little Sketch
 
 We've included a diagram below to offer a clearer perspective on this implementation. This visualization should help elucidate the inner workings and flow of our Redis server replica.
+
 ![Redis Flow](./redis-flow.png)
