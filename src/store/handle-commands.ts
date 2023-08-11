@@ -8,6 +8,7 @@ import { getAList } from "./lrange";
 import { Payload, decideSetStrategy } from "./set";
 import { throwIfNumOfArgsWrong } from "./utils";
 import { valinorVault } from "./valinor-vault";
+import { save } from "./save";
 
 export function handleCommand(command: string | number | any[]) {
   if (!Array.isArray(command)) {
@@ -56,7 +57,11 @@ export function handleCommand(command: string | number | any[]) {
       const [key] = args;
       if (valinorVault.has(key)) {
         return serialize(valinorVault.get(key));
-      } else return serialize(null);
+      }
+      return serialize(null);
+    }
+    case "save": {
+      return serialize(save());
     }
     case "command":
       return serialize(null);
