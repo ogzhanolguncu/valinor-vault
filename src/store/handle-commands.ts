@@ -1,6 +1,7 @@
 import { serialize } from "../resp-v2/serialize";
 import { deleteKeyValPair } from "./del";
 import { checkIfKeyValExists } from "./exists";
+import { incrementIfExists } from "./incr";
 import { Payload, decideSetStrategy } from "./set";
 import { throwIfNumOfArgsWrong } from "./utils";
 import { valinorVault } from "./valinor-vault";
@@ -28,6 +29,9 @@ export function handleCommand(command: string | number | any[]) {
     }
     case "del": {
       return serialize(deleteKeyValPair(args));
+    }
+    case "incr": {
+      return serialize(incrementIfExists(args[0]));
     }
     case "get": {
       if (args.length !== 1) {
