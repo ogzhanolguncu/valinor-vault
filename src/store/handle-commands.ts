@@ -3,6 +3,8 @@ import { decrementIfExists } from "./decr";
 import { deleteKeyValPair } from "./del";
 import { checkIfKeyValExists } from "./exists";
 import { incrementIfExists } from "./incr";
+import { createAList } from "./push";
+import { getAList } from "./lrange";
 import { Payload, decideSetStrategy } from "./set";
 import { throwIfNumOfArgsWrong } from "./utils";
 import { valinorVault } from "./valinor-vault";
@@ -36,6 +38,15 @@ export function handleCommand(command: string | number | any[]) {
     }
     case "decr": {
       return serialize(decrementIfExists(args[0]));
+    }
+    case "lpush": {
+      return serialize(createAList(args, "L"));
+    }
+    case "rpush": {
+      return serialize(createAList(args, "R"));
+    }
+    case "lrange": {
+      return serialize(getAList(args));
     }
     case "get": {
       if (args.length !== 1) {

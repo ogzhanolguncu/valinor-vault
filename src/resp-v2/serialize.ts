@@ -4,7 +4,7 @@ export const serialize = (input: any) => {
   if (input === null) return appendCRLF("$-1");
 
   if (typeof input === "string") {
-    if (input.startsWith("+") || (Number.isNaN(input) && input.startsWith("-"))) {
+    if (input.startsWith("+") || (isNaN(Number(input)) && input.startsWith("-"))) {
       return appendCRLF(input);
     }
     //Bulk string
